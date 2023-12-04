@@ -1,23 +1,14 @@
 
-# TODO
-# foreach day: days
-#     ...
-# endforeach
+days = ['01', '02']
 
-executable(
-	'day-01', ['day-01.cc'], 
-	dependencies: [utils_dep],
-	cpp_args: [],
-	link_args: [],
-	install: false,
-	build_by_default: true
-)
 
-executable(
-	'day-02', ['day-02.cc'], 
-	dependencies: [utils_dep],
-	cpp_args: [],
-	link_args: [],
-	install: false,
-	build_by_default: true
-)
+foreach day: days
+    executable(
+	'day-' + day, ['day-' + day + '.cc'], 
+		dependencies: [utils_dep],
+		cpp_args: [],
+		link_args: [],
+		install: false,
+		build_by_default: true
+	)
+endforeach
