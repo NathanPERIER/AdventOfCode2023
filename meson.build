@@ -6,9 +6,12 @@ cpp_warning_flags = [
   '-Wextra',
   '-pedantic-errors',
   '-Wdisabled-optimization',
-  '-Werror=unused-result'
+  '-Werror=unused-result',
+  '-Werror=return-type'
 ]
 
+
+subdir('include')
 
 subdir('src')
 
