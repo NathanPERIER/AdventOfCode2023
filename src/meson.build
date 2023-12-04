@@ -1,5 +1,5 @@
 
-days = ['01', '02']
+days = ['01', '02', '03']
 
 
 foreach day: days
