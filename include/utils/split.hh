@@ -7,7 +7,7 @@
 class split {
 
 public:
-    split(const std::string& view, const std::string& sep): _view(view), _separator(sep) {}
+    split(const std::string_view& view, const std::string& sep): _view(view), _separator(sep) {}
 
     class iterator {
 
@@ -71,4 +71,13 @@ private:
     std::string _separator;
 
 };
+
+
+std::pair<std::string_view, std::string_view> split_once(const std::string_view str, const std::string_view sep) {
+    std::size_t pos = str.find(sep);
+    if(pos == std::string_view::npos) {
+        return { str, std::string_view() };
+    }
+    return { str.substr(0, pos), str.substr(pos + sep.length()) };
+}
 
