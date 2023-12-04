@@ -7,7 +7,7 @@ l_args = []
 
 
 executable(
-	'day-1', ['day-1.cc', sources], 
+	'day-01', ['day-01.cc'], 
 	dependencies: [],
 	cpp_args: [cpp_flags],
 	link_args: [l_args],
