@@ -38,7 +38,7 @@ private:
 };
 
 
-uint32_t min_location(const std::vector<uint32_t>& seeds, const std::vector<range_map>& maps) {
+uint32_t min_location_pt1(const std::vector<uint32_t>& seeds, const std::vector<range_map>& maps) {
 	uint32_t res = 0xffffffff;
 	for(uint32_t seed: seeds) {
 		for(const range_map& mapping: maps) {
@@ -49,8 +49,31 @@ uint32_t min_location(const std::vector<uint32_t>& seeds, const std::vector<rang
 	return res;
 }
 
+uint32_t min_location_pt2(const std::vector<uint32_t>& seeds, const std::vector<range_map>& maps) {
+	uint32_t res = 0xffffffff;
+	for(size_t i = 0; i < seeds.size()-1; i += 2) {
+		std::cout << "Seed range " << (i/2 + 1) << "/" << (seeds.size()/2 + 1) << " : "
+				  << seeds[i] << " -> " << (seeds[i] + seeds[i+1] - 1) << " (" << seeds[i+1] << " elements)" << std::endl;
+		#pragma omp parallel for shared(res)
+		for(uint32_t j = 0; j < seeds[i+1]; j++) {
+			uint32_t seed = seeds[i] + j;
+			for(const range_map& mapping: maps) {
+				seed = mapping[seed];
+			}
+			if(seed < res) {
+				#pragma omp critical
+				res = seed;
+			}
+		}
+	}
+	return res;
+}
 
-int main() {
+
+int main(int argc, char** argv) {
+
+	const bool is_part_2 = (argc >= 2 && std::string("--part2") == argv[1]);
+	const auto min_location = is_part_2 ? min_location_pt2 : min_location_pt1;
 
 	std::vector<uint32_t> seeds;
     std::vector<range_map> maps;
