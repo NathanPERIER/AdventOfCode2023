@@ -6,8 +6,8 @@ foreach day: days
     executable(
 	'day-' + day, ['day-' + day + '.cc'], 
 		dependencies: [utils_dep],
-		cpp_args: [],
-		link_args: [],
+		cpp_args: ['-fopenmp'],
+		link_args: ['-fopenmp'],
 		install: false,
 		build_by_default: true
 	)
