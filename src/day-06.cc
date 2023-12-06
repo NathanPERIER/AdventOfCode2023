@@ -4,11 +4,13 @@
 #include <cmath>
 
 #include <utils/split.hh>
+#include <utils/format.hh>
+#include <utils/input.hh>
 
 
 struct boat_race {
-	uint32_t duration;
-	uint32_t record;
+	uint64_t duration;
+	uint64_t record;
 };
 
 
@@ -84,47 +86,78 @@ struct boat_race {
  |      The number of items in this set is : floor(t2) - ceil(t1) + 1
  */
 
-uint32_t compute_number_wins(const boat_race& r) {
-	const int32_t delta = static_cast<int32_t>(r.duration * r.duration) - 4 * static_cast<int32_t>(r.record);
+uint64_t compute_number_wins(const boat_race& r) {
+	const int64_t delta = static_cast<int64_t>(r.duration * r.duration) - 4 * static_cast<int64_t>(r.record);
+	std::cout << "\tdelta = b² - 4ac = " << r.duration << "² - 4 * (" << r.record << ") = " << delta << std::endl;
 	if(delta < 0) {
+		std::cout << "\tno possible results" << std::endl;
 		return 0; // should not actually happen
 	}
 	if(delta == 0) {
+		std::cout << "\tat most one result" << std::endl;
 		return 1 - (r.duration & 0x00000001); // 1 if duration is even, else 0
 	}
 	const double sqrt_delta = std::sqrt(static_cast<double>(delta));
+	std::cout << "\tsqrt(delta) = " << sqrt_delta << std::endl;
 	const double t1 = (static_cast<double>(r.duration) - sqrt_delta) / 2.0;
 	const double t2 = (static_cast<double>(r.duration) + sqrt_delta) / 2.0;
-	return static_cast<uint32_t>(std::floor(t2) - std::ceil(t1)) + 1;
+	std::cout << "\tt1 = " << t1 << "ms => " << static_cast<uint64_t>(std::ceil(t1))  << std::endl;
+	std::cout << "\tt2 = " << t2 << "ms => " << static_cast<uint64_t>(std::floor(t2)) << std::endl;
+	const uint64_t res = static_cast<uint64_t>(std::floor(t2) - std::ceil(t1)) + 1;
+	std::cout << "\t ==> " << res << " winning possibilities" << std::endl;
+	return res;
 }
 
 
 uint64_t process_races(const std::vector<boat_race>& races) {
 	uint64_t res = 1;
 	for(const boat_race& r: races) {
-		const uint32_t nb_wins = compute_number_wins(r);
-		std::cout << "Race (d=" << r.duration << "ms, r=" << r.record << "mm) => " << nb_wins << std::endl;
-		res *= nb_wins;
+		std::cout << "Race (d=" << r.duration << "ms, r=" << r.record << "mm)" << std::endl;
+		res *= compute_number_wins(r);
 	}
 	return res;
 }
 
 
-int main() {
+int main(int argc, char** argv) {
+	
+	const bool is_part_2 = (argc >= 2 && std::string("--part2") == argv[1]);
 
 	std::vector<boat_race> races;
 
-	std::string times;
-	std::string distances;
-	std::getline(std::cin, times);
-	std::getline(std::cin, distances);
+	std::string times     = read_line().value();
+	std::string distances = read_line().value();
 	
-	if(times.length() > 0 && times.back() == '\n') {
-		times.pop_back();
+	if(is_part_2) {
+		size_t i = 0;
+		while(i != times.length()) {
+			if(!is_number(times[i])) {
+				times.erase(i, 1);
+			} else {
+				i++;
+			}
+		}
+		i = 0;
+		while(i != distances.length()) {
+			if(!is_number(distances[i])) {
+				distances.erase(i, 1);
+			} else {
+				i++;
+			}
+		}
+		
+		const boat_race r = {
+			static_cast<uint64_t>(std::stoull(times)),
+			static_cast<uint64_t>(std::stoull(distances))
+		};
+		std::cout << "Race (d=" << r.duration << "ms, r=" << r.record << "mm)" << std::endl;
+		const uint64_t nb_ways = compute_number_wins(r);
+		std::cout << "Number of ways to win : " << nb_ways << std::endl;
+
+		return 0;
 	}
-	if(distances.length() > 0 && distances.back() == '\n') {
-		distances.pop_back();
-	}
+
+	// Part 1
 
 	for(const std::string_view repr: split(split_once(times, ": ").second, " ")) {
 		if(repr.length() == 0) {
