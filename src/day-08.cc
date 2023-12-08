@@ -41,7 +41,7 @@ private:
 };
 
 
-uint32_t compute_steps(const std::unordered_map<std::string,std::shared_ptr<lazy_node>>& nodes, 
+uint32_t compute_steps_pt1(const std::unordered_map<std::string,std::shared_ptr<lazy_node>>& nodes, 
 			const std::string& directions, const std::string& start, const std::string& destination) {
 	uint32_t res = 0;
 	size_t pos = 0;
@@ -60,7 +60,70 @@ uint32_t compute_steps(const std::unordered_map<std::string,std::shared_ptr<lazy
 }
 
 
-int main() {
+
+struct positioned_node {
+	std::shared_ptr<lazy_node> n;
+	uint32_t steps;
+	size_t pos;
+
+	lazy_node* operator->() { return n.get(); }
+	const lazy_node* operator->() const { return n.get(); }
+
+	void next(const std::string& directions, const std::unordered_map<std::string,std::shared_ptr<lazy_node>>& nodes) {
+		n = n->go(directions[pos], nodes);
+		steps++;
+		pos++;
+		if(pos >= directions.size()) {
+			pos = 0;
+		}
+	}
+
+};
+
+uint32_t compute_steps_pt2(const std::unordered_map<std::string,std::shared_ptr<lazy_node>>& nodes,
+			const std::string& directions, const char start, const char destination) {
+	if(start == destination) { return 0; }
+	size_t i = 0;
+	std::vector<positioned_node> current;
+	for(const auto& e: nodes) {
+		if(e.first.back() == start) {
+			current.push_back({ e.second, 0, 0 });
+		}
+	}
+	const auto pred = [destination](const positioned_node& n) {
+		return n->name().back() == destination;
+	};
+	bool good = false;
+	while(!good) {
+		uint32_t steps = 0;
+		std::cout << '[' << i << "] " << current[i]->name();
+		do {
+			current[i].next(directions, nodes);
+			steps++;
+		} while(!pred(current[0]));
+		std::cout << " --(" << steps << ")--> " << current[0]->name() << std::endl;
+		good = true;
+		for(size_t j = 0; j < current.size(); j++) {
+			if(j == i) { continue; }
+			std::cout << "    + " << current[j]->name();
+			while(current[j].steps < current[i].steps) {
+				current[j].next(directions, nodes);
+			}
+			std::cout << " --> " << current[j]->name() << std::endl;
+			if(!pred(current[j])) {
+				good = false;
+				i = j;
+				break;
+			}
+		}
+	}
+	return current[0].steps;
+}
+
+
+int main(int argc, char** argv) {
+
+	const bool is_part_2 = (argc >= 2 && std::string("--part2") == argv[1]);
 
 	std::unordered_map<std::string,std::shared_ptr<lazy_node>> nodes;
 
@@ -80,7 +143,7 @@ int main() {
 		nodes[std::string(name)] = std::make_shared<lazy_node>(std::string(name), std::string(left_name), std::string(right_name));
 	}
 
-	const uint32_t nb_steps = compute_steps(nodes, directions, "AAA", "ZZZ");
+	const uint32_t nb_steps = is_part_2 ? compute_steps_pt2(nodes, directions, 'A', 'Z') : compute_steps_pt1(nodes, directions, "AAA", "ZZZ");
 	std::cout << "Number of steps : " << nb_steps << std::endl;
 
 	return 0;
